@@ -122,18 +122,42 @@
   README.md
   AGENTS.md
   data/
+    README.md
     sources.json
     price-indexes.json
     exchange-rates.json
   scripts/
-    update-data.js
+    update-data.mjs
   src/
     app.js
     calculator.js
     styles.css
 ```
 
-`scripts/update-data.js`는 초기 구현에서 꼭 필요하지는 않지만, 나중에 Codex가 공식 데이터 소스를 다시 조회하고 `data/` 파일을 갱신할 수 있도록 남겨둘 수 있는 자리입니다. GitHub Pages에 배포되는 앱 자체는 이 스크립트를 실행하지 않습니다.
+`scripts/update-data.mjs`는 공식 데이터 소스를 다시 조회하고 `data/` 파일을 갱신하는 스크립트입니다. GitHub Pages에 배포되는 앱 자체는 이 스크립트를 실행하지 않습니다.
+
+현재 생성되는 데이터 파일:
+
+- `data/sources.json`
+  - 데이터 출처, 접근 시각, 프랑-유로 공식 고정 전환율 등
+- `data/price-indexes.json`
+  - GBP: 1209-2026
+  - FRF: 1901-2025
+  - EUR: 1996-2025, 실제 유로 계산은 1999년 이후 사용
+  - USD: 1913-2026
+- `data/exchange-rates.json`
+  - USD 1달러당 현지 통화 단위의 연평균 환율
+  - GBP/KRW/USD: 1960-2026
+  - EUR: 1999-2026
+  - FRF: 1960-1998
+
+데이터 갱신 명령:
+
+```sh
+node scripts/update-data.mjs
+```
+
+2026년처럼 확정 연간 평균이 아직 없는 값은 가능한 경우 최신 월 또는 연초 이후 평균으로 저장하고, 해당 연도는 `provisionalYears`에 표시합니다.
 
 폐지되거나 통합된 화폐는 가능한 경우 공식 고정 전환율, 역사적 환율, 물가 지수, 구매력 지표를 조합해 처리합니다. 프랑처럼 유로로 전환된 화폐는 공식 고정 전환율과 INSEE 자료를 우선합니다.
 
