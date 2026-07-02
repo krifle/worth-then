@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Worth Then</title>
+    <link rel="stylesheet" href="./src/styles.css">
+    <script type="module" src="./src/app.js"></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="app-header">
+        <p class="app-kicker">Worth Then</p>
+        <h1>책 속 돈값</h1>
+      </header>
+
+      <form id="converter-form" class="calculator" autocomplete="off">
+        <div class="field">
+          <label for="source-currency">대상 화폐</label>
+          <select id="source-currency" name="sourceCurrency"></select>
+        </div>
+
+        <div class="field">
+          <label for="amount">대상 가격</label>
+          <input id="amount" name="amount" type="number" inputmode="decimal" min="0" step="any" value="10">
+        </div>
+
+        <div class="field">
+          <label for="source-year">기준 연도</label>
+          <input id="source-year" name="sourceYear" type="number" inputmode="numeric" step="1">
+        </div>
+
+        <div class="field">
+          <label for="target-year">목표 연도</label>
+          <input id="target-year" name="targetYear" type="number" inputmode="numeric" step="1">
+        </div>
+
+        <fieldset class="field target-field">
+          <legend>목표 화폐</legend>
+          <div class="segmented-control">
+            <label>
+              <input type="radio" name="targetCurrency" value="KRW" checked>
+              <span>원화</span>
+            </label>
+            <label>
+              <input type="radio" name="targetCurrency" value="USD">
+              <span>달러</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <button id="submit-button" class="submit-button" type="submit">변환</button>
+      </form>
+
+      <p id="status-text" class="status-text" aria-live="polite"></p>
+
+      <section id="result-panel" class="result-panel is-empty" aria-live="polite">
+        <p class="result-label">계산 결과</p>
+        <p class="empty-message">값을 입력하면 여기에 표시됩니다.</p>
+      </section>
+    </main>
+  </body>
+</html>
