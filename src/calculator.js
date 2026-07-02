@@ -11,7 +11,7 @@ const FRF_TO_EUR = 6.55957;
 const OLD_FRANC_TO_NEW_FRANC = 100;
 
 export function calculateWorth(input, dataset) {
-  const amount = Number(input.amount);
+  const amount = parseAmount(input.amount);
   const sourceYear = toInteger(input.sourceYear);
   const targetYear = toInteger(input.targetYear);
   const sourceCurrency = input.sourceCurrency;
@@ -325,6 +325,19 @@ function buildNotes({
 function toInteger(value) {
   const parsed = Number(value);
   return Number.isInteger(parsed) ? parsed : Number.NaN;
+}
+
+function parseAmount(value) {
+  if (typeof value === "number") {
+    return value;
+  }
+
+  const normalized = String(value).replaceAll(",", "").trim();
+  if (normalized === "") {
+    return Number.NaN;
+  }
+
+  return Number(normalized);
 }
 
 export class CalculationError extends Error {

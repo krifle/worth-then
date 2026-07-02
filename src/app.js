@@ -30,10 +30,13 @@ async function init() {
     targetYearInput.value = String(DEFAULT_TARGET_YEAR);
     sourceYearInput.value = "1930";
     syncYearBounds();
+    formatAmountField();
     setLoading(false);
     renderEmptyResult();
     form.addEventListener("submit", handleSubmit);
     sourceCurrencyInput.addEventListener("change", syncYearBounds);
+    amountInput.addEventListener("input", formatAmountField);
+    amountInput.addEventListener("blur", formatAmountField);
   } catch (error) {
     setLoading(false);
     renderError("데이터를 불러오지 못했습니다. HTTP 서버에서 다시 열어주세요.");
@@ -207,7 +210,7 @@ function formatMoney(value, currency) {
 }
 
 function formatPlainAmount(value, currency) {
-  const maximumFractionDigits = Math.abs(value) >= 100 ? 0 : 2;
+  const maximumFractionDigits = Number.isInteger(value) ? 0 : 2;
   const formatted = new Intl.NumberFormat("ko-KR", {
     maximumFractionDigits,
   }).format(value);
@@ -218,6 +221,77 @@ function formatPlainAmount(value, currency) {
 function setLoading(isLoading) {
   submitButton.disabled = isLoading;
   statusText.textContent = isLoading ? "데이터 로딩 중" : "";
+}
+
+function formatAmountField() {
+  const cursor = amountInput.selectionStart ?? amountInput.value.length;
+  const preservedCount = countAmountCharacters(amountInput.value.slice(0, cursor));
+  const formattedValue = formatAmountInput(amountInput.value);
+
+  amountInput.value = formattedValue;
+
+  const nextCursor = getCursorForAmountCharacterCount(formattedValue, preservedCount);
+  amountInput.setSelectionRange(nextCursor, nextCursor);
+}
+
+function formatAmountInput(value) {
+  const sanitizedValue = sanitizeAmountInput(value);
+  if (sanitizedValue === "") {
+    return "";
+  }
+
+  const hasDecimalPoint = sanitizedValue.includes(".");
+  const [rawIntegerPart, rawFractionPart = ""] = sanitizedValue.split(".");
+  const integerPart = rawIntegerPart.replace(/^0+(?=\d)/, "") || "0";
+  const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+  if (hasDecimalPoint) {
+    return `${formattedIntegerPart}.${rawFractionPart}`;
+  }
+
+  return formattedIntegerPart;
+}
+
+function sanitizeAmountInput(value) {
+  let sanitized = "";
+  let hasDecimalPoint = false;
+
+  for (const character of String(value)) {
+    if (/\d/.test(character)) {
+      sanitized += character;
+      continue;
+    }
+
+    if (character === "." && !hasDecimalPoint) {
+      sanitized += character;
+      hasDecimalPoint = true;
+    }
+  }
+
+  return sanitized;
+}
+
+function countAmountCharacters(value) {
+  return sanitizeAmountInput(value).length;
+}
+
+function getCursorForAmountCharacterCount(value, targetCount) {
+  if (targetCount <= 0) {
+    return 0;
+  }
+
+  let currentCount = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    if (/[\d.]/.test(value[index])) {
+      currentCount += 1;
+    }
+
+    if (currentCount >= targetCount) {
+      return index + 1;
+    }
+  }
+
+  return value.length;
 }
 
 function escapeHtml(value) {
