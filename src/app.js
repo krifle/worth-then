@@ -6,7 +6,9 @@ import {
 } from "./calculator.js";
 
 const DEFAULT_TARGET_YEAR = 2026;
+const FORM_STORAGE_KEY = "worth-then:converter-form:v1";
 const currencyOptions = ["GBP", "FRF", "EUR", "USD"];
+const targetCurrencyOptions = ["KRW", "USD"];
 
 const form = document.querySelector("#converter-form");
 const sourceCurrencyInput = document.querySelector("#source-currency");
@@ -29,14 +31,22 @@ async function init() {
     populateCurrencyOptions();
     targetYearInput.value = String(DEFAULT_TARGET_YEAR);
     sourceYearInput.value = "1930";
+    restoreFormState();
     syncYearBounds();
     formatAmountField();
+    persistFormState();
     setLoading(false);
     renderEmptyResult();
     form.addEventListener("submit", handleSubmit);
-    sourceCurrencyInput.addEventListener("change", syncYearBounds);
-    amountInput.addEventListener("input", formatAmountField);
-    amountInput.addEventListener("blur", formatAmountField);
+    sourceCurrencyInput.addEventListener("change", handleSourceCurrencyChange);
+    amountInput.addEventListener("input", handleAmountInput);
+    amountInput.addEventListener("blur", handleAmountBlur);
+    sourceYearInput.addEventListener("input", persistFormState);
+    targetYearInput.addEventListener("input", persistFormState);
+    targetCurrencyOptions.forEach((currency) => {
+      const input = form.querySelector(`input[name="targetCurrency"][value="${currency}"]`);
+      input?.addEventListener("change", persistFormState);
+    });
   } catch (error) {
     setLoading(false);
     renderError("데이터를 불러오지 못했습니다. HTTP 서버에서 다시 열어주세요.");
@@ -99,6 +109,18 @@ function syncYearBounds() {
 
   targetYearInput.min = "1960";
   targetYearInput.max = String(getMaxTargetYear(dataset.exchangeRates));
+
+  const currentTargetYear = Number(targetYearInput.value);
+  const minTargetYear = Number(targetYearInput.min);
+  const maxTargetYear = Number(targetYearInput.max);
+
+  if (!Number.isFinite(currentTargetYear) || currentTargetYear < minTargetYear) {
+    targetYearInput.value = String(minTargetYear);
+  }
+
+  if (currentTargetYear > maxTargetYear) {
+    targetYearInput.value = String(maxTargetYear);
+  }
 }
 
 function getMaxTargetYear(exchangeRates) {
@@ -109,6 +131,7 @@ function getMaxTargetYear(exchangeRates) {
 
 function handleSubmit(event) {
   event.preventDefault();
+  persistFormState();
 
   try {
     const result = calculateWorth(
@@ -135,6 +158,21 @@ function handleSubmit(event) {
 
 function getTargetCurrency() {
   return form.elements.targetCurrency.value;
+}
+
+function handleSourceCurrencyChange() {
+  syncYearBounds();
+  persistFormState();
+}
+
+function handleAmountInput() {
+  formatAmountField();
+  persistFormState();
+}
+
+function handleAmountBlur() {
+  formatAmountField();
+  persistFormState();
 }
 
 function renderEmptyResult() {
@@ -221,6 +259,70 @@ function formatPlainAmount(value, currency) {
 function setLoading(isLoading) {
   submitButton.disabled = isLoading;
   statusText.textContent = isLoading ? "데이터 로딩 중" : "";
+}
+
+function restoreFormState() {
+  const state = readStoredFormState();
+  if (!state) {
+    return;
+  }
+
+  if (currencyOptions.includes(state.sourceCurrency)) {
+    sourceCurrencyInput.value = state.sourceCurrency;
+  }
+
+  if (typeof state.amount === "string") {
+    amountInput.value = state.amount;
+  }
+
+  if (isYearValue(state.sourceYear)) {
+    sourceYearInput.value = state.sourceYear;
+  }
+
+  if (isYearValue(state.targetYear)) {
+    targetYearInput.value = state.targetYear;
+  }
+
+  if (targetCurrencyOptions.includes(state.targetCurrency)) {
+    setTargetCurrency(state.targetCurrency);
+  }
+}
+
+function readStoredFormState() {
+  try {
+    const storedValue = localStorage.getItem(FORM_STORAGE_KEY);
+    return storedValue ? JSON.parse(storedValue) : null;
+  } catch {
+    return null;
+  }
+}
+
+function persistFormState() {
+  try {
+    localStorage.setItem(
+      FORM_STORAGE_KEY,
+      JSON.stringify({
+        sourceCurrency: sourceCurrencyInput.value,
+        amount: amountInput.value,
+        sourceYear: sourceYearInput.value,
+        targetYear: targetYearInput.value,
+        targetCurrency: getTargetCurrency(),
+      }),
+    );
+  } catch {
+    // Browsers can disable storage in private or restricted contexts.
+  }
+}
+
+function setTargetCurrency(currency) {
+  const input = form.querySelector(`input[name="targetCurrency"][value="${currency}"]`);
+  if (input) {
+    input.checked = true;
+  }
+}
+
+function isYearValue(value) {
+  return /^\d{1,4}$/.test(String(value));
 }
 
 function formatAmountField() {
