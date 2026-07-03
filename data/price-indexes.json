@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-02T11:45:37.349Z",
+  "generatedAt": "2026-07-03T16:08:38.682Z",
   "description": "Annual price indexes for rough reading-oriented purchasing-power conversions.",
   "indexes": {
     "GBP": {
@@ -991,6 +991,10 @@
         "end": 2025,
         "count": 125
       },
+      "sourceYearRange": {
+        "start": 1901,
+        "end": 1998
+      },
       "provisionalYears": {},
       "currencyTransition": {
         "targetCurrency": "EUR",
@@ -1191,6 +1195,349 @@
           "note": "Average of available monthly CPI-U values; not a complete annual average."
         }
       }
+    },
+    "RUB_IMP": {
+      "displayName": "Russian imperial ruble",
+      "country": "Russian Empire",
+      "indexName": "Historicalstatistics.org Swedish consumer-goods purchasing-power bridge to USD",
+      "unit": "bridge index",
+      "base": "Target years are USD purchasing-power bridge values",
+      "sourceIds": [
+        "historicalstatistics-currency-converter",
+        "bls-cpi-u-cuur0000sa0"
+      ],
+      "years": {
+        "1880": 816.903056,
+        "1881": 829.802819,
+        "1882": 857.706293,
+        "1883": 855.202,
+        "1884": 806.595993,
+        "1885": 760.841044,
+        "1886": 747.793836,
+        "1887": 764.638273,
+        "1888": 787.203767,
+        "1889": 720.457658,
+        "1890": 669.336319,
+        "1891": 739.64556,
+        "1892": 786.592544,
+        "1893": 738.13418,
+        "1894": 674.418549,
+        "1895": 671.801244,
+        "1896": 686.55867,
+        "1897": 717.751903,
+        "1898": 740.815892,
+        "1899": 783.890888,
+        "1900": 804.182188,
+        "1901": 801.997357,
+        "1902": 804.250603,
+        "1903": 798.037506,
+        "1904": 800.033983,
+        "1905": 816.519885,
+        "1906": 858.904315,
+        "1907": 883.481091,
+        "1908": 898.218322,
+        "1909": 879.595741,
+        "1910": 878.673334,
+        "1911": 890.544664,
+        "1912": 938.897311,
+        "1913": 949.49353,
+        "1998": 8687.828826,
+        "1999": 8399.524349,
+        "2000": 7661.447414,
+        "2001": 6953.278338,
+        "2002": 7551.534098,
+        "2003": 9254.567604,
+        "2004": 10213.009606,
+        "2005": 10105.57475,
+        "2006": 10365.56592,
+        "2007": 11551.286626,
+        "2008": 12325.488468,
+        "2009": 10553.591001,
+        "2010": 11328.220639,
+        "2011": 12883.081145,
+        "2012": 12462.129891,
+        "2013": 13097.774765,
+        "2014": 12610.325494,
+        "2015": 10418.007893,
+        "2016": 10549.432405,
+        "2017": 10774.172716,
+        "2018": 11037.329423,
+        "2019": 11237.323246,
+        "2020": 11375.956327,
+        "2021": 11910.401358,
+        "2022": 12863.558732,
+        "2023": 13393.080838,
+        "2024": 13788.101604,
+        "2025": 14150.903585,
+        "2026": 14508.501331
+      },
+      "yearRange": {
+        "start": 1880,
+        "end": 2026,
+        "count": 63
+      },
+      "sourceYearRange": {
+        "start": 1880,
+        "end": 1913,
+        "count": 34
+      },
+      "targetYearRange": {
+        "start": 1998,
+        "end": 2026,
+        "count": 29
+      },
+      "provisionalYears": {
+        "2026": {
+          "kind": "partial-year-average",
+          "sourceId": "bls-cpi-u-cuur0000sa0",
+          "monthCount": 5,
+          "note": "Historical bridge extends beyond 2015 with available BLS CPI-U values; not a complete annual average when source CPI is partial."
+        }
+      },
+      "bridgeCurrency": "USD",
+      "estimationKind": "historicalstatistics-swedish-consumer-bridge",
+      "metadata": {
+        "url": "https://www.historicalstatistics.org/Currencyconverter.html",
+        "availableRussianRubleRanges": [
+          "Russian rouble [1880-1917]; actual data through 1913 in the embedded table",
+          "Russian rouble [1961-1998]",
+          "Russian rouble [1998-2015]"
+        ]
+      },
+      "note": "Experimental estimate. Historical rubles are bridged through Historicalstatistics.org's Swedish consumer-goods comparison and expressed as target-year USD purchasing power."
+    },
+    "SUR": {
+      "displayName": "Soviet ruble",
+      "country": "Soviet Union",
+      "indexName": "Historicalstatistics.org Swedish consumer-goods purchasing-power bridge to USD",
+      "unit": "bridge index",
+      "base": "Target years are USD purchasing-power bridge values",
+      "sourceIds": [
+        "historicalstatistics-currency-converter",
+        "bls-cpi-u-cuur0000sa0"
+      ],
+      "years": {
+        "1961": 3873.423818,
+        "1962": 5449.977176,
+        "1963": 5501.428713,
+        "1964": 5362.604986,
+        "1965": 5192.130727,
+        "1966": 7465.818781,
+        "1967": 8024.678419,
+        "1968": 10085.204869,
+        "1969": 10495.819319,
+        "1970": 12395.215848,
+        "1971": 12371.187496,
+        "1972": 10694.570226,
+        "1973": 11814.034091,
+        "1974": 10482.516556,
+        "1975": 12322.6719,
+        "1976": 15091.546564,
+        "1977": 17430.207956,
+        "1978": 19818.074517,
+        "1979": 22402.753866,
+        "1980": 25002.256711,
+        "1981": 22073.90106,
+        "1982": 20130.033788,
+        "1983": 18740.36872,
+        "1984": 21096.112603,
+        "1985": 23903.140441,
+        "1986": 24399.264978,
+        "1987": 31777.60729,
+        "1988": 48306.214576,
+        "1989": 93210.730702,
+        "1990": 185735.786807,
+        "1991": 644620.544962,
+        "1998": 8687.828826,
+        "1999": 8399.524349,
+        "2000": 7661.447414,
+        "2001": 6953.278338,
+        "2002": 7551.534098,
+        "2003": 9254.567604,
+        "2004": 10213.009606,
+        "2005": 10105.57475,
+        "2006": 10365.56592,
+        "2007": 11551.286626,
+        "2008": 12325.488468,
+        "2009": 10553.591001,
+        "2010": 11328.220639,
+        "2011": 12883.081145,
+        "2012": 12462.129891,
+        "2013": 13097.774765,
+        "2014": 12610.325494,
+        "2015": 10418.007893,
+        "2016": 10549.432405,
+        "2017": 10774.172716,
+        "2018": 11037.329423,
+        "2019": 11237.323246,
+        "2020": 11375.956327,
+        "2021": 11910.401358,
+        "2022": 12863.558732,
+        "2023": 13393.080838,
+        "2024": 13788.101604,
+        "2025": 14150.903585,
+        "2026": 14508.501331
+      },
+      "yearRange": {
+        "start": 1961,
+        "end": 2026,
+        "count": 60
+      },
+      "sourceYearRange": {
+        "start": 1961,
+        "end": 1991,
+        "count": 31
+      },
+      "targetYearRange": {
+        "start": 1998,
+        "end": 2026,
+        "count": 29
+      },
+      "provisionalYears": {
+        "2026": {
+          "kind": "partial-year-average",
+          "sourceId": "bls-cpi-u-cuur0000sa0",
+          "monthCount": 5,
+          "note": "Historical bridge extends beyond 2015 with available BLS CPI-U values; not a complete annual average when source CPI is partial."
+        }
+      },
+      "bridgeCurrency": "USD",
+      "estimationKind": "historicalstatistics-swedish-consumer-bridge",
+      "metadata": {
+        "url": "https://www.historicalstatistics.org/Currencyconverter.html",
+        "availableRussianRubleRanges": [
+          "Russian rouble [1880-1917]; actual data through 1913 in the embedded table",
+          "Russian rouble [1961-1998]",
+          "Russian rouble [1998-2015]"
+        ]
+      },
+      "note": "Experimental estimate. The 1961-1998 ruble scale in Historicalstatistics.org is bridged to target-year USD purchasing power; 1992-1997 Russian rubles are handled separately as RUR."
+    },
+    "RUR": {
+      "displayName": "Russian old ruble",
+      "country": "Russian Federation",
+      "indexName": "World Bank consumer price index",
+      "unit": "index",
+      "base": "2010 = 100",
+      "sourceIds": [
+        "world-bank-russia-cpi"
+      ],
+      "years": {
+        "1992": 0.053596,
+        "1993": 0.522155,
+        "1994": 2.128943,
+        "1995": 6.331779,
+        "1996": 9.355331,
+        "1997": 10.736302,
+        "1998": 13.708721,
+        "1999": 25.463468,
+        "2000": 30.759554,
+        "2001": 37.365785,
+        "2002": 43.265368,
+        "2003": 49.176843,
+        "2004": 54.53152,
+        "2005": 61.449009,
+        "2006": 67.390301,
+        "2007": 73.460347,
+        "2008": 83.826166,
+        "2009": 93.589676,
+        "2010": 100,
+        "2011": 108.440465,
+        "2012": 113.94354,
+        "2013": 121.640048,
+        "2014": 131.152506,
+        "2015": 151.526256,
+        "2016": 162.197397,
+        "2017": 168.171664,
+        "2018": 173.012172,
+        "2019": 180.749322,
+        "2020": 186.862622,
+        "2021": 199.372063,
+        "2022": 226.773121,
+        "2023": 240.074996,
+        "2024": 260.324996,
+        "2025": 283.024995
+      },
+      "yearRange": {
+        "start": 1992,
+        "end": 2025,
+        "count": 34
+      },
+      "sourceYearRange": {
+        "start": 1992,
+        "end": 1997
+      },
+      "provisionalYears": {},
+      "currencyTransition": {
+        "targetCurrency": "RUB",
+        "fixedRate": 1000,
+        "meaning": "1 RUB = 1,000 RUR",
+        "effectiveYear": 1998
+      },
+      "metadata": {
+        "worldBankLastUpdated": "2026-07-01"
+      },
+      "note": "Use this entry for Russian ruble amounts before the 1998 redenomination. Amounts are adjusted through Russia CPI and moved to RUB for modern target years."
+    },
+    "RUB": {
+      "displayName": "Russian ruble",
+      "country": "Russian Federation",
+      "indexName": "World Bank consumer price index",
+      "unit": "index",
+      "base": "2010 = 100",
+      "sourceIds": [
+        "world-bank-russia-cpi"
+      ],
+      "years": {
+        "1992": 0.053596,
+        "1993": 0.522155,
+        "1994": 2.128943,
+        "1995": 6.331779,
+        "1996": 9.355331,
+        "1997": 10.736302,
+        "1998": 13.708721,
+        "1999": 25.463468,
+        "2000": 30.759554,
+        "2001": 37.365785,
+        "2002": 43.265368,
+        "2003": 49.176843,
+        "2004": 54.53152,
+        "2005": 61.449009,
+        "2006": 67.390301,
+        "2007": 73.460347,
+        "2008": 83.826166,
+        "2009": 93.589676,
+        "2010": 100,
+        "2011": 108.440465,
+        "2012": 113.94354,
+        "2013": 121.640048,
+        "2014": 131.152506,
+        "2015": 151.526256,
+        "2016": 162.197397,
+        "2017": 168.171664,
+        "2018": 173.012172,
+        "2019": 180.749322,
+        "2020": 186.862622,
+        "2021": 199.372063,
+        "2022": 226.773121,
+        "2023": 240.074996,
+        "2024": 260.324996,
+        "2025": 283.024995
+      },
+      "yearRange": {
+        "start": 1992,
+        "end": 2025,
+        "count": 34
+      },
+      "sourceYearRange": {
+        "start": 1998,
+        "end": 2025
+      },
+      "provisionalYears": {},
+      "metadata": {
+        "worldBankLastUpdated": "2026-07-01"
+      },
+      "note": "Use this entry for Russian ruble amounts after the 1998 redenomination. Older amounts should use RUR."
     }
   }
 }

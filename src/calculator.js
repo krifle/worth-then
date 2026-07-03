@@ -3,12 +3,18 @@ export const CURRENCY_LABELS = {
   FRF: "프랑스 프랑",
   EUR: "유럽 유로",
   USD: "미국 달러",
+  RUB_IMP: "제정 러시아 루블",
+  SUR: "소련 루블",
+  RUR: "러시아 구루블",
+  RUB: "러시아 루블",
   KRW: "원화",
 };
 
 const TARGET_CURRENCIES = new Set(["KRW", "USD"]);
+const HISTORICAL_RUBLE_SOURCE_CURRENCIES = new Set(["RUB_IMP", "SUR"]);
 const FRF_TO_EUR = 6.55957;
 const OLD_FRANC_TO_NEW_FRANC = 100;
+const OLD_RUBLE_TO_NEW_RUBLE = 1000;
 
 export function calculateWorth(input, dataset) {
   const amount = parseAmount(input.amount);
@@ -28,6 +34,7 @@ export function calculateWorth(input, dataset) {
 
   const priceIndex = dataset.priceIndexes.indexes[sourceCurrency];
   assertCurrencyYear(sourceCurrency, sourceYear, priceIndex);
+  assertTargetYear(sourceCurrency, targetYear, priceIndex);
 
   const sourceIndex = findYearAtOrBefore(priceIndex.years, sourceYear);
   const targetIndex = findYearAtOrBefore(priceIndex.years, targetYear);
@@ -81,16 +88,11 @@ export function getCurrencyYearBounds(currency, priceIndexes) {
     return null;
   }
 
-  const start = index.usableFromYear ?? index.yearRange.start;
-  let end = index.yearRange.end;
-
-  if (currency === "FRF") {
-    end = Math.min(end, 1998);
-  }
+  const bounds = getSourceYearBounds(currency, index);
 
   return {
-    start,
-    end,
+    start: bounds.start,
+    end: bounds.end,
   };
 }
 
@@ -124,15 +126,52 @@ function assertValidInput({
 }
 
 function assertCurrencyYear(currency, sourceYear, priceIndex) {
-  if (priceIndex.usableFromYear && sourceYear < priceIndex.usableFromYear) {
+  const bounds = getSourceYearBounds(currency, priceIndex);
+
+  if (Number.isFinite(bounds.start) && sourceYear < bounds.start) {
     throw new CalculationError(
-      `${CURRENCY_LABELS[currency]}는 ${priceIndex.usableFromYear}년 이후 금액만 계산할 수 있습니다.`,
+      `${CURRENCY_LABELS[currency]} 금액은 ${bounds.start}년 이후만 계산할 수 있습니다.`,
     );
   }
 
-  if (currency === "FRF" && sourceYear > 1998) {
-    throw new CalculationError("프랑스 프랑은 1998년 이전 금액으로 계산해주세요.");
+  if (Number.isFinite(bounds.end) && sourceYear > bounds.end) {
+    throw new CalculationError(
+      `${CURRENCY_LABELS[currency]} 금액은 ${bounds.end}년 이전으로 계산해주세요.`,
+    );
   }
+}
+
+function assertTargetYear(currency, targetYear, priceIndex) {
+  const bounds = priceIndex.targetYearRange;
+  if (!bounds) {
+    return;
+  }
+
+  if (Number.isFinite(bounds.start) && targetYear < bounds.start) {
+    throw new CalculationError(
+      `${CURRENCY_LABELS[currency]} 금액은 목표 연도 ${bounds.start}년 이후로만 계산할 수 있습니다.`,
+    );
+  }
+
+  if (Number.isFinite(bounds.end) && targetYear > bounds.end) {
+    throw new CalculationError(
+      `${CURRENCY_LABELS[currency]} 금액은 목표 연도 ${bounds.end}년 이전으로 계산해주세요.`,
+    );
+  }
+}
+
+function getSourceYearBounds(currency, priceIndex) {
+  const legacyEndYear = currency === "FRF"
+    ? Math.min(priceIndex.yearRange.end, 1998)
+    : priceIndex.yearRange.end;
+
+  return {
+    start:
+      priceIndex.sourceYearRange?.start
+      ?? priceIndex.usableFromYear
+      ?? priceIndex.yearRange.start,
+    end: priceIndex.sourceYearRange?.end ?? legacyEndYear,
+  };
 }
 
 function findYearAtOrBefore(years, requestedYear) {
@@ -164,6 +203,14 @@ function findYearAtOrBefore(years, requestedYear) {
 }
 
 function getLocalCurrency(sourceCurrency, targetIndexYear) {
+  if (HISTORICAL_RUBLE_SOURCE_CURRENCIES.has(sourceCurrency)) {
+    return "USD";
+  }
+
+  if (sourceCurrency === "RUR") {
+    return targetIndexYear >= 1998 ? "RUB" : "RUR";
+  }
+
   if (sourceCurrency !== "FRF") {
     return sourceCurrency;
   }
@@ -180,7 +227,7 @@ function getLocalCurrency(sourceCurrency, targetIndexYear) {
 }
 
 function getUnitConversion(sourceCurrency, sourceYear, targetIndexYear) {
-  if (sourceCurrency !== "FRF") {
+  if (sourceCurrency !== "FRF" && sourceCurrency !== "RUR") {
     return {
       factor: 1,
       notes: [],
@@ -190,12 +237,17 @@ function getUnitConversion(sourceCurrency, sourceYear, targetIndexYear) {
   const notes = [];
   let factor = 1;
 
-  if (sourceYear < 1960 && targetIndexYear >= 1960) {
+  if (sourceCurrency === "RUR" && targetIndexYear >= 1998) {
+    factor /= OLD_RUBLE_TO_NEW_RUBLE;
+    notes.push("1998년 러시아 화폐개혁 전환율 1 RUB = 1,000 RUR을 반영했습니다.");
+  }
+
+  if (sourceCurrency === "FRF" && sourceYear < 1960 && targetIndexYear >= 1960) {
     factor /= OLD_FRANC_TO_NEW_FRANC;
     notes.push("1960년 신프랑 전환율 1 신프랑 = 100 구프랑을 반영했습니다.");
   }
 
-  if (targetIndexYear >= 1999) {
+  if (sourceCurrency === "FRF" && targetIndexYear >= 1999) {
     factor /= FRF_TO_EUR;
     notes.push("프랑-유로 공식 고정 전환율 1 EUR = 6.55957 FRF를 반영했습니다.");
   }
@@ -313,6 +365,19 @@ function buildNotes({
 
   if (sourceCurrency === "FRF" && localCurrency === "EUR") {
     notes.push("프랑 금액은 프랑스 내 구매력으로 보정한 뒤 유로 단위로 넘겨 환산했습니다.");
+  }
+
+  if (sourceCurrency === "RUR" && localCurrency === "RUB") {
+    notes.push("러시아 구루블 금액은 러시아 CPI로 보정한 뒤 현행 루블 단위로 넘겨 환산했습니다.");
+  }
+
+  if (HISTORICAL_RUBLE_SOURCE_CURRENCIES.has(sourceCurrency)) {
+    notes.push("역사 루블 금액은 Historicalstatistics.org의 시험판 장기 변환기를 사용한 매우 대략적 추정입니다.");
+    notes.push("스웨덴 소비재 구매력 비교를 거쳐 목표 연도 미국 달러 감각으로 먼저 환산했습니다.");
+  }
+
+  if (sourceCurrency === "RUR" || sourceCurrency === "RUB") {
+    notes.push("러시아 루블 결과는 World Bank CPI와 공식 환율 기반의 대략값입니다.");
   }
 
   if (targetCurrency === "KRW") {

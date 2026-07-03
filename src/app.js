@@ -12,8 +12,18 @@ const OLD_GBP_MAX_SOURCE_YEAR = 1971;
 const SHILLINGS_PER_POUND = 20;
 const PENCE_PER_SHILLING = 12;
 const PENCE_PER_POUND = SHILLINGS_PER_POUND * PENCE_PER_SHILLING;
-const currencyOptions = ["GBP", "FRF", "EUR", "USD"];
+const currencyOptions = ["GBP", "FRF", "EUR", "USD", "RUB_IMP", "SUR", "RUR", "RUB"];
 const targetCurrencyOptions = ["KRW", "USD"];
+const sourceCurrencyOptionLabels = {
+  RUB_IMP: "제정 러시아 루블, 1880-1913",
+  SUR: "소련 루블, 1961-1991",
+  RUR: "러시아 구루블, 1992-1997",
+  RUB: "러시아 루블, 1998년 이후",
+};
+const sourceCurrencyAmountLabels = {
+  RUB_IMP: "루블",
+  SUR: "루블",
+};
 
 const form = document.querySelector("#converter-form");
 const oldGbpForm = document.querySelector("#old-gbp-form");
@@ -114,7 +124,8 @@ function populateCurrencyOptions() {
     ...currencyOptions.map((currency) => {
       const option = document.createElement("option");
       option.value = currency;
-      option.textContent = `${CURRENCY_LABELS[currency]} (${currency})`;
+      const label = sourceCurrencyOptionLabels[currency] ?? CURRENCY_LABELS[currency];
+      option.textContent = `${label} (${currency})`;
       return option;
     }),
   );
@@ -139,8 +150,9 @@ function syncYearBounds() {
     sourceYearInput.value = String(bounds.end);
   }
 
-  targetYearInput.min = "1960";
-  targetYearInput.max = String(getMaxTargetYear(dataset.exchangeRates));
+  const targetBounds = getTargetYearBounds(sourceCurrencyInput.value);
+  targetYearInput.min = String(targetBounds.start);
+  targetYearInput.max = String(targetBounds.end);
 
   const currentTargetYear = Number(targetYearInput.value);
   const minTargetYear = Number(targetYearInput.min);
@@ -194,6 +206,21 @@ function getMaxTargetYear(exchangeRates) {
   return Math.max(
     ...Object.values(exchangeRates.rates).map((rate) => rate.yearRange.end ?? 0),
   );
+}
+
+function getTargetYearBounds(sourceCurrency) {
+  const priceIndex = dataset.priceIndexes.indexes[sourceCurrency];
+  const exchangeRateMaxYear = getMaxTargetYear(dataset.exchangeRates);
+  const start = Math.max(1960, priceIndex?.targetYearRange?.start ?? 1960);
+  const end = Math.min(
+    exchangeRateMaxYear,
+    priceIndex?.targetYearRange?.end ?? exchangeRateMaxYear,
+  );
+
+  return {
+    start,
+    end,
+  };
 }
 
 function handleSubmit(event) {
@@ -505,7 +532,7 @@ function formatPlainAmount(value, currency) {
     maximumFractionDigits,
   }).format(value);
 
-  return `${formatted} ${currency}`;
+  return `${formatted} ${sourceCurrencyAmountLabels[currency] ?? currency}`;
 }
 
 function formatDecimalPounds(value) {

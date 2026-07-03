@@ -27,7 +27,11 @@ const urls = {
   eurostatHicpAnnual:
     "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_aind?format=JSON&lang=en&freq=A&unit=INX_A_AVG&coicop=CP00&geo=EA",
   worldBankExchange:
-    "https://api.worldbank.org/v2/country/GBR;FRA;USA;KOR;EMU/indicator/PA.NUS.FCRF?format=json&per_page=20000",
+    "https://api.worldbank.org/v2/country/GBR;FRA;USA;KOR;EMU;RUS/indicator/PA.NUS.FCRF?format=json&per_page=20000",
+  worldBankRussiaCpi:
+    "https://api.worldbank.org/v2/country/RUS/indicator/FP.CPI.TOTL?format=json&per_page=20000",
+  historicalCurrencyConverter:
+    "https://www.historicalstatistics.org/Currencyconverter.html",
 };
 
 const sourceIds = {
@@ -37,24 +41,35 @@ const sourceIds = {
   bls: "bls-cpi-u-cuur0000sa0",
   eurostat: "eurostat-hicp-annual-euro-area",
   worldBankExchange: "world-bank-official-exchange-rate",
+  worldBankRussiaCpi: "world-bank-russia-cpi",
   ecb: "ecb-euro-reference-rates",
+  historicalCurrencyConverter: "historicalstatistics-currency-converter",
 };
+
+const HISTORICAL_CONSUMER_COLUMN = 0;
+const HISTORICAL_RUSSIAN_RUBLE_COLUMN = 37;
+const HISTORICAL_USD_COLUMN = 45;
 
 async function main() {
   await mkdir(dataDir, { recursive: true });
 
   console.log("Fetching price indexes...");
-  const [gbp, frf, eur, usd] = await Promise.all([
+  const [gbp, frf, eur, usd, rub, historicalCurrency] = await Promise.all([
     fetchGbpPriceIndex(),
     fetchFranceFrancPriceIndex(),
     fetchEuroPriceIndex(),
     fetchUsdPriceIndex(),
+    fetchRussiaPriceIndex(),
+    fetchHistoricalCurrencyConverter(),
   ]);
 
   console.log("Fetching exchange rates...");
   const exchangeRates = await fetchExchangeRates();
 
-  await writeJson("price-indexes.json", buildPriceIndexes(gbp, frf, eur, usd));
+  await writeJson(
+    "price-indexes.json",
+    buildPriceIndexes(gbp, frf, eur, usd, rub, historicalCurrency),
+  );
   await writeJson("exchange-rates.json", exchangeRates);
   await writeJson("sources.json", buildSources(exchangeRates));
 
@@ -291,6 +306,58 @@ async function fetchUsdPriceIndex() {
   };
 }
 
+async function fetchRussiaPriceIndex() {
+  const worldBank = await fetchJson(urls.worldBankRussiaCpi);
+  const [metadata, rows] = worldBank;
+
+  if (!Array.isArray(rows)) {
+    throw new Error("Unexpected World Bank Russia CPI response.");
+  }
+
+  const years = {};
+  for (const row of rows) {
+    if (isFiniteNumber(row.value)) {
+      years[row.date] = toNumber(row.value);
+    }
+  }
+
+  return {
+    years: sortYearValues(years),
+    provisionalYears: {},
+    metadata: {
+      worldBankLastUpdated: metadata?.lastupdated ?? null,
+    },
+  };
+}
+
+async function fetchHistoricalCurrencyConverter() {
+  const html = await fetchText(urls.historicalCurrencyConverter);
+  const rows = {};
+  const rowPattern = /priceyear\[(\d{4})\]\s*=\s*new Array\(([^)]*)\)/g;
+  let match;
+
+  while ((match = rowPattern.exec(html)) !== null) {
+    const [, year, rawValues] = match;
+    rows[year] = rawValues.split(",").map(toNumber);
+  }
+
+  if (Object.keys(rows).length === 0) {
+    throw new Error("Could not find priceyear data in Historical Currency Converter page.");
+  }
+
+  return {
+    rows,
+    metadata: {
+      url: urls.historicalCurrencyConverter,
+      availableRussianRubleRanges: [
+        "Russian rouble [1880-1917]; actual data through 1913 in the embedded table",
+        "Russian rouble [1961-1998]",
+        "Russian rouble [1998-2015]",
+      ],
+    },
+  };
+}
+
 async function fetchExchangeRates() {
   const worldBank = await fetchJson(urls.worldBankExchange);
   const [metadata, rows] = worldBank;
@@ -333,6 +400,24 @@ async function fetchExchangeRates() {
       sourceIds: [sourceIds.worldBankExchange],
       years: sortYearValues(filterYearRange(byCountry.EMU ?? {}, 1999, 9999)),
       provisionalYears: {},
+    },
+    RUR: {
+      displayName: "Russian old ruble",
+      meaning: "RUR per USD",
+      sourceIds: [sourceIds.worldBankExchange],
+      years: makePre1998RussianRubleRates(byCountry.RUS ?? {}),
+      provisionalYears: {},
+      note:
+        "World Bank Russia exchange rates before 1998 are stored in post-redenomination scale; multiply by 1,000 for pre-1998 ruble amounts.",
+    },
+    RUB: {
+      displayName: "Russian ruble",
+      meaning: "RUB per USD",
+      sourceIds: [sourceIds.worldBankExchange],
+      years: sortYearValues(filterYearRange(byCountry.RUS ?? {}, 1998, 9999)),
+      provisionalYears: {},
+      note:
+        "World Bank official exchange rates are used for modern Russian ruble handling; latest complete annual values may lag current target years.",
     },
     KRW: {
       displayName: "South Korean won",
@@ -476,7 +561,11 @@ function applyEcbSupplement(rates, supplement) {
   }
 }
 
-function buildPriceIndexes(gbp, frf, eur, usd) {
+function buildPriceIndexes(gbp, frf, eur, usd, rub, historicalCurrency) {
+  const frfYearRange = yearRange(frf.years);
+  const rubYearRange = yearRange(rub.years);
+  const historicalRubles = buildHistoricalRublePriceIndexes(historicalCurrency, usd);
+
   const indexes = {
     GBP: {
       displayName: "British pound",
@@ -498,7 +587,11 @@ function buildPriceIndexes(gbp, frf, eur, usd) {
       base: "2025 = 100",
       sourceIds: [sourceIds.insee],
       years: frf.years,
-      yearRange: yearRange(frf.years),
+      yearRange: frfYearRange,
+      sourceYearRange: {
+        start: frfYearRange.start,
+        end: 1998,
+      },
       provisionalYears: frf.provisionalYears,
       currencyTransition: {
         targetCurrency: "EUR",
@@ -533,6 +626,50 @@ function buildPriceIndexes(gbp, frf, eur, usd) {
       yearRange: yearRange(usd.years),
       provisionalYears: usd.provisionalYears,
     },
+    RUB_IMP: historicalRubles.RUB_IMP,
+    SUR: historicalRubles.SUR,
+    RUR: {
+      displayName: "Russian old ruble",
+      country: "Russian Federation",
+      indexName: "World Bank consumer price index",
+      unit: "index",
+      base: "2010 = 100",
+      sourceIds: [sourceIds.worldBankRussiaCpi],
+      years: rub.years,
+      yearRange: rubYearRange,
+      sourceYearRange: {
+        start: 1992,
+        end: 1997,
+      },
+      provisionalYears: rub.provisionalYears,
+      currencyTransition: {
+        targetCurrency: "RUB",
+        fixedRate: 1000,
+        meaning: "1 RUB = 1,000 RUR",
+        effectiveYear: 1998,
+      },
+      metadata: rub.metadata,
+      note:
+        "Use this entry for Russian ruble amounts before the 1998 redenomination. Amounts are adjusted through Russia CPI and moved to RUB for modern target years.",
+    },
+    RUB: {
+      displayName: "Russian ruble",
+      country: "Russian Federation",
+      indexName: "World Bank consumer price index",
+      unit: "index",
+      base: "2010 = 100",
+      sourceIds: [sourceIds.worldBankRussiaCpi],
+      years: rub.years,
+      yearRange: rubYearRange,
+      sourceYearRange: {
+        start: 1998,
+        end: rubYearRange.end,
+      },
+      provisionalYears: rub.provisionalYears,
+      metadata: rub.metadata,
+      note:
+        "Use this entry for Russian ruble amounts after the 1998 redenomination. Older amounts should use RUR.",
+    },
   };
 
   return {
@@ -542,6 +679,166 @@ function buildPriceIndexes(gbp, frf, eur, usd) {
       "Annual price indexes for rough reading-oriented purchasing-power conversions.",
     indexes,
   };
+}
+
+function buildHistoricalRublePriceIndexes(historicalCurrency, usd) {
+  const targetYears = makeHistoricalUsdBridgeTargetYears(
+    historicalCurrency.rows,
+    usd.years,
+  );
+  const targetYearRange = yearRange(targetYears);
+  const provisionalYears = makeHistoricalBridgeProvisionalYears(usd.provisionalYears);
+  const imperialSourceYears = makeHistoricalRubleSourceYears(
+    historicalCurrency.rows,
+    1880,
+    1913,
+    1,
+  );
+  const sovietSourceYears = makeHistoricalRubleSourceYears(
+    historicalCurrency.rows,
+    1961,
+    1991,
+    1000,
+  );
+  const imperialSourceRange = yearRange(imperialSourceYears);
+  const sovietSourceRange = yearRange(sovietSourceYears);
+
+  return {
+    RUB_IMP: {
+      displayName: "Russian imperial ruble",
+      country: "Russian Empire",
+      indexName:
+        "Historicalstatistics.org Swedish consumer-goods purchasing-power bridge to USD",
+      unit: "bridge index",
+      base: "Target years are USD purchasing-power bridge values",
+      sourceIds: [sourceIds.historicalCurrencyConverter, sourceIds.bls],
+      years: sortYearValues({
+        ...imperialSourceYears,
+        ...targetYears,
+      }),
+      yearRange: yearRange({
+        ...imperialSourceYears,
+        ...targetYears,
+      }),
+      sourceYearRange: imperialSourceRange,
+      targetYearRange,
+      provisionalYears,
+      bridgeCurrency: "USD",
+      estimationKind: "historicalstatistics-swedish-consumer-bridge",
+      metadata: historicalCurrency.metadata,
+      note:
+        "Experimental estimate. Historical rubles are bridged through Historicalstatistics.org's Swedish consumer-goods comparison and expressed as target-year USD purchasing power.",
+    },
+    SUR: {
+      displayName: "Soviet ruble",
+      country: "Soviet Union",
+      indexName:
+        "Historicalstatistics.org Swedish consumer-goods purchasing-power bridge to USD",
+      unit: "bridge index",
+      base: "Target years are USD purchasing-power bridge values",
+      sourceIds: [sourceIds.historicalCurrencyConverter, sourceIds.bls],
+      years: sortYearValues({
+        ...sovietSourceYears,
+        ...targetYears,
+      }),
+      yearRange: yearRange({
+        ...sovietSourceYears,
+        ...targetYears,
+      }),
+      sourceYearRange: sovietSourceRange,
+      targetYearRange,
+      provisionalYears,
+      bridgeCurrency: "USD",
+      estimationKind: "historicalstatistics-swedish-consumer-bridge",
+      metadata: historicalCurrency.metadata,
+      note:
+        "Experimental estimate. The 1961-1998 ruble scale in Historicalstatistics.org is bridged to target-year USD purchasing power; 1992-1997 Russian rubles are handled separately as RUR.",
+    },
+  };
+}
+
+function makeHistoricalRubleSourceYears(rows, startYear, endYear, scale) {
+  const years = {};
+
+  for (let year = startYear; year <= endYear; year += 1) {
+    const bridgeValue = getHistoricalBridgeValue(
+      rows,
+      year,
+      HISTORICAL_RUSSIAN_RUBLE_COLUMN,
+    );
+    if (bridgeValue) {
+      years[String(year)] = bridgeValue * scale;
+    }
+  }
+
+  return sortYearValues(years);
+}
+
+function makeHistoricalUsdBridgeTargetYears(rows, usdYears) {
+  const years = {};
+
+  for (let year = 1998; year <= 2015; year += 1) {
+    const bridgeValue = getHistoricalBridgeValue(
+      rows,
+      year,
+      HISTORICAL_USD_COLUMN,
+    );
+    if (bridgeValue) {
+      years[String(year)] = bridgeValue;
+    }
+  }
+
+  const anchorYear = "2015";
+  const anchorBridgeValue = years[anchorYear];
+  const anchorUsdCpi = usdYears[anchorYear];
+  if (!isFiniteNumber(anchorBridgeValue) || !isFiniteNumber(anchorUsdCpi)) {
+    throw new Error("Could not anchor historical ruble bridge at 2015 USD.");
+  }
+
+  for (const [year, usdCpi] of Object.entries(usdYears)) {
+    const numericYear = Number(year);
+    if (numericYear > 2015) {
+      years[year] = anchorBridgeValue * (usdCpi / anchorUsdCpi);
+    }
+  }
+
+  return sortYearValues(years);
+}
+
+function makeHistoricalBridgeProvisionalYears(usdProvisionalYears) {
+  const provisionalYears = {};
+
+  for (const [year, detail] of Object.entries(usdProvisionalYears ?? {})) {
+    if (Number(year) > 2015) {
+      provisionalYears[year] = {
+        ...detail,
+        note:
+          "Historical bridge extends beyond 2015 with available BLS CPI-U values; not a complete annual average when source CPI is partial.",
+      };
+    }
+  }
+
+  return provisionalYears;
+}
+
+function getHistoricalBridgeValue(rows, year, currencyColumn) {
+  const row = rows[String(year)];
+  if (!Array.isArray(row)) {
+    return null;
+  }
+
+  const consumerValue = row[HISTORICAL_CONSUMER_COLUMN];
+  const currencyValue = row[currencyColumn];
+  if (
+    !isFiniteNumber(consumerValue)
+    || !isFiniteNumber(currencyValue)
+    || consumerValue <= 0
+    || currencyValue <= 0
+  ) {
+    return null;
+  }
+
+  return consumerValue * currencyValue;
 }
 
 function buildSources(exchangeRates) {
@@ -597,6 +894,22 @@ function buildSources(exchangeRates) {
           exchangeRates?.metadata?.worldBank?.lastUpdated ?? undefined,
         use: "Annual average exchange rates through the latest complete World Bank year.",
       },
+      [sourceIds.worldBankRussiaCpi]: {
+        title: "Consumer price index (2010 = 100)",
+        publisher: "World Bank",
+        url: urls.worldBankRussiaCpi,
+        accessedAt: generatedAt,
+        indicator: "FP.CPI.TOTL",
+        use: "Russian Federation annual CPI for 1992 onward ruble purchasing-power estimates.",
+      },
+      [sourceIds.historicalCurrencyConverter]: {
+        title: "Historical Currency Converter (test version 1.0)",
+        publisher: "Historicalstatistics.org / Rodney Edvinsson",
+        url: urls.historicalCurrencyConverter,
+        accessedAt: generatedAt,
+        use:
+          "Experimental bridge for Russian imperial and Soviet ruble estimates using Swedish consumer-goods purchasing-power comparisons.",
+      },
       [sourceIds.ecb]: {
         title: "Euro foreign exchange reference rates",
         publisher: "European Central Bank",
@@ -612,6 +925,14 @@ function buildSources(exchangeRates) {
         meaning: "1 EUR = 6.55957 FRF",
         note:
           "The French franc was fixed to the euro for conversion. Store this explicitly so calculation code does not guess.",
+      },
+      RUR: {
+        targetCurrency: "RUB",
+        fixedRate: 1000,
+        meaning: "1 RUB = 1,000 RUR",
+        effectiveYear: 1998,
+        note:
+          "The 1998 Russian redenomination changed the nominal scale. Store old ruble separately so pre-1998 amounts are not read as modern RUB.",
       },
     },
   };
@@ -736,6 +1057,19 @@ function makeUsdIdentityYears(worldBankUsdYears) {
   }
 
   return years;
+}
+
+function makePre1998RussianRubleRates(worldBankRubYears) {
+  const years = {};
+
+  for (const [year, value] of Object.entries(worldBankRubYears)) {
+    const numericYear = Number(year);
+    if (numericYear >= 1992 && numericYear <= 1997) {
+      years[year] = toNumber(value) * 1000;
+    }
+  }
+
+  return sortYearValues(years);
 }
 
 function yearRange(years) {

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-02T11:45:37.349Z",
+  "generatedAt": "2026-07-03T16:08:38.682Z",
   "baseCurrency": "USD",
   "rateMeaning": "Local currency units per 1 US dollar, annual average.",
   "rates": {
@@ -78,15 +78,15 @@
         "2023": 0.804539,
         "2024": 0.782415,
         "2025": 0.759474,
-        "2026": 0.743531
+        "2026": 0.743634
       },
       "provisionalYears": {
         "2026": {
           "kind": "year-to-date-average",
           "sourceId": "ecb-euro-reference-rates",
-          "observationCount": 126,
+          "observationCount": 128,
           "firstDate": "2026-01-02",
-          "lastDate": "2026-07-01",
+          "lastDate": "2026-07-03",
           "note": "ECB daily reference rates averaged year-to-date; not a complete annual average."
         }
       },
@@ -186,15 +186,15 @@
         "2023": 0.92484,
         "2024": 0.92389,
         "2025": 0.884969,
-        "2026": 0.857467
+        "2026": 0.857748
       },
       "provisionalYears": {
         "2026": {
           "kind": "year-to-date-average",
           "sourceId": "ecb-euro-reference-rates",
-          "observationCount": 126,
+          "observationCount": 128,
           "firstDate": "2026-01-02",
-          "lastDate": "2026-07-01",
+          "lastDate": "2026-07-03",
           "note": "ECB daily reference rates averaged year-to-date; not a complete annual average."
         }
       },
@@ -202,6 +202,68 @@
         "start": 1999,
         "end": 2026,
         "count": 28
+      }
+    },
+    "RUR": {
+      "displayName": "Russian old ruble",
+      "meaning": "RUR per USD",
+      "sourceIds": [
+        "world-bank-official-exchange-rate"
+      ],
+      "years": {
+        "1993": 991.666667,
+        "1996": 5120.833333,
+        "1997": 5784.833333
+      },
+      "provisionalYears": {},
+      "note": "World Bank Russia exchange rates before 1998 are stored in post-redenomination scale; multiply by 1,000 for pre-1998 ruble amounts.",
+      "yearRange": {
+        "start": 1993,
+        "end": 1997,
+        "count": 3
+      }
+    },
+    "RUB": {
+      "displayName": "Russian ruble",
+      "meaning": "RUB per USD",
+      "sourceIds": [
+        "world-bank-official-exchange-rate"
+      ],
+      "years": {
+        "1998": 9.705083,
+        "1999": 24.6199,
+        "2000": 28.129167,
+        "2001": 29.168525,
+        "2002": 31.348483,
+        "2003": 30.692025,
+        "2004": 28.813742,
+        "2005": 28.284442,
+        "2006": 27.190958,
+        "2007": 25.580845,
+        "2008": 24.852875,
+        "2009": 31.740358,
+        "2010": 30.367915,
+        "2011": 29.382341,
+        "2012": 30.839831,
+        "2013": 31.837144,
+        "2014": 38.378207,
+        "2015": 60.93765,
+        "2016": 67.055933,
+        "2017": 58.342801,
+        "2018": 62.668133,
+        "2019": 64.737658,
+        "2020": 72.104908,
+        "2021": 73.65435,
+        "2022": 68.484942,
+        "2023": 85.162008,
+        "2024": 92.5524
+      },
+      "provisionalYears": {},
+      "note": "World Bank official exchange rates are used for modern Russian ruble handling; latest complete annual values may lag current target years.",
+      "yearRange": {
+        "start": 1998,
+        "end": 2024,
+        "count": 27
       }
     },
     "KRW": {
@@ -278,15 +340,15 @@
         "2023": 1305.6625,
         "2024": 1363.375,
         "2025": 1422.440833,
-        "2026": 1484.379523
+        "2026": 1485.249175
       },
       "provisionalYears": {
         "2026": {
           "kind": "year-to-date-average",
           "sourceId": "ecb-euro-reference-rates",
-          "observationCount": 126,
+          "observationCount": 128,
           "firstDate": "2026-01-02",
-          "lastDate": "2026-07-01",
+          "lastDate": "2026-07-03",
           "note": "ECB daily reference rates averaged year-to-date; not a complete annual average."
         }
       },
@@ -383,7 +445,7 @@
     "worldBank": {
       "indicator": "PA.NUS.FCRF",
       "lastUpdated": "2026-07-01",
-      "url": "https://api.worldbank.org/v2/country/GBR;FRA;USA;KOR;EMU/indicator/PA.NUS.FCRF?format=json&per_page=20000"
+      "url": "https://api.worldbank.org/v2/country/GBR;FRA;USA;KOR;EMU;RUS/indicator/PA.NUS.FCRF?format=json&per_page=20000"
     }
   }
 }

@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-02T11:45:37.349Z",
+  "generatedAt": "2026-07-03T16:08:38.682Z",
   "generatedBy": "scripts/update-data.mjs",
   "sources": {
     "bank-of-england-inflation-calculator": {
       "title": "Bank of England inflation calculator",
       "publisher": "Bank of England",
       "url": "https://www.bankofengland.co.uk/monetary-policy/inflation/inflation-calculator",
-      "accessedAt": "2026-07-02T11:45:37.349Z",
+      "accessedAt": "2026-07-03T16:08:38.682Z",
       "use": "Long-run UK annual price index and latest monthly provisional UK values."
     },
     "ons-cpi-d7bt": {
       "title": "CPI INDEX 00: ALL ITEMS 2015=100 (D7BT)",
       "publisher": "Office for National Statistics",
       "url": "https://www.ons.gov.uk/generator?uri=/economy/inflationandpriceindices/timeseries/d7bt/mm23&format=csv",
-      "accessedAt": "2026-07-02T11:45:37.349Z",
+      "accessedAt": "2026-07-03T16:08:38.682Z",
       "use": "Recent UK annual CPI values where the Bank of England embedded annual data has not yet caught up."
     },
     "insee-franc-euro-purchasing-power": {
       "title": "Coefficient de transformation de l'euro ou du franc d'une annee, en euro ou en franc d'une autre annee - Base 2025",
       "publisher": "INSEE",
       "url": "https://bdm.insee.fr/series/011813530/csv?revision=avecrevisions",
-      "accessedAt": "2026-07-02T11:45:37.349Z",
+      "accessedAt": "2026-07-03T16:08:38.682Z",
       "use": "France franc/euro purchasing-power coefficient, annual 1901-2025."
     },
     "bls-cpi-u-cuur0000sa0": {
@@ -29,30 +29,45 @@
       "publisher": "U.S. Bureau of Labor Statistics",
       "url": "https://api.bls.gov/publicAPI/v2/timeseries/data/",
       "seriesId": "CUUR0000SA0",
-      "accessedAt": "2026-07-02T11:45:37.349Z",
+      "accessedAt": "2026-07-03T16:08:38.682Z",
       "use": "US CPI-U annual averages and partial current-year average when available."
     },
     "eurostat-hicp-annual-euro-area": {
       "title": "HICP - annual data (average index and rate of change)",
       "publisher": "Eurostat",
       "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_aind?format=JSON&lang=en&freq=A&unit=INX_A_AVG&coicop=CP00&geo=EA",
-      "accessedAt": "2026-07-02T11:45:37.349Z",
+      "accessedAt": "2026-07-03T16:08:38.682Z",
       "use": "Euro area annual HICP average index."
     },
     "world-bank-official-exchange-rate": {
       "title": "Official exchange rate (LCU per US$, period average)",
       "publisher": "World Bank",
-      "url": "https://api.worldbank.org/v2/country/GBR;FRA;USA;KOR;EMU/indicator/PA.NUS.FCRF?format=json&per_page=20000",
-      "accessedAt": "2026-07-02T11:45:37.349Z",
+      "url": "https://api.worldbank.org/v2/country/GBR;FRA;USA;KOR;EMU;RUS/indicator/PA.NUS.FCRF?format=json&per_page=20000",
+      "accessedAt": "2026-07-03T16:08:38.682Z",
       "indicator": "PA.NUS.FCRF",
       "lastUpdated": "2026-07-01",
       "use": "Annual average exchange rates through the latest complete World Bank year."
+    },
+    "world-bank-russia-cpi": {
+      "title": "Consumer price index (2010 = 100)",
+      "publisher": "World Bank",
+      "url": "https://api.worldbank.org/v2/country/RUS/indicator/FP.CPI.TOTL?format=json&per_page=20000",
+      "accessedAt": "2026-07-03T16:08:38.682Z",
+      "indicator": "FP.CPI.TOTL",
+      "use": "Russian Federation annual CPI for 1992 onward ruble purchasing-power estimates."
+    },
+    "historicalstatistics-currency-converter": {
+      "title": "Historical Currency Converter (test version 1.0)",
+      "publisher": "Historicalstatistics.org / Rodney Edvinsson",
+      "url": "https://www.historicalstatistics.org/Currencyconverter.html",
+      "accessedAt": "2026-07-03T16:08:38.682Z",
+      "use": "Experimental bridge for Russian imperial and Soviet ruble estimates using Swedish consumer-goods purchasing-power comparisons."
     },
     "ecb-euro-reference-rates": {
       "title": "Euro foreign exchange reference rates",
       "publisher": "European Central Bank",
       "baseUrl": "https://data-api.ecb.europa.eu/service/data/EXR/",
-      "accessedAt": "2026-07-02T11:45:37.349Z",
+      "accessedAt": "2026-07-03T16:08:38.682Z",
       "use": "Current-year year-to-date reference-rate supplement for EUR, GBP, and KRW against USD."
     }
   },
@@ -62,6 +77,13 @@
       "fixedRate": 6.55957,
       "meaning": "1 EUR = 6.55957 FRF",
       "note": "The French franc was fixed to the euro for conversion. Store this explicitly so calculation code does not guess."
+    },
+    "RUR": {
+      "targetCurrency": "RUB",
+      "fixedRate": 1000,
+      "meaning": "1 RUB = 1,000 RUR",
+      "effectiveYear": 1998,
+      "note": "The 1998 Russian redenomination changed the nominal scale. Store old ruble separately so pre-1998 amounts are not read as modern RUB."
     }
   }
 }
