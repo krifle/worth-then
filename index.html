@@ -58,6 +58,67 @@
         <p class="result-label">계산 결과</p>
         <p class="empty-message">값을 입력하면 여기에 표시됩니다.</p>
       </section>
+
+      <section class="old-money-section" aria-labelledby="old-gbp-title">
+        <header class="section-heading">
+          <p class="app-kicker">영국 구화폐</p>
+          <h2 id="old-gbp-title">파운드·실링·펜스</h2>
+          <p class="section-note">1971년 십진화 이전 표기 기준입니다. 1파운드 = 20실링, 1실링 = 12펜스.</p>
+        </header>
+
+        <form id="old-gbp-form" class="calculator old-gbp-calculator" autocomplete="off" novalidate>
+          <div class="old-money-parts" role="group" aria-labelledby="old-gbp-amount-label">
+            <p id="old-gbp-amount-label" class="group-label">구화폐 금액</p>
+            <div class="old-money-grid">
+              <div class="field">
+                <label for="old-gbp-pounds">파운드</label>
+                <input id="old-gbp-pounds" name="pounds" type="number" inputmode="decimal" min="0" step="1" value="0">
+              </div>
+
+              <div class="field">
+                <label for="old-gbp-shillings">실링</label>
+                <input id="old-gbp-shillings" name="shillings" type="number" inputmode="decimal" min="0" step="1" value="0">
+              </div>
+
+              <div class="field">
+                <label for="old-gbp-pence">펜스</label>
+                <input id="old-gbp-pence" name="pence" type="number" inputmode="decimal" min="0" step="0.25" value="6">
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="old-gbp-source-year">기준 연도</label>
+            <input id="old-gbp-source-year" name="sourceYear" type="number" inputmode="numeric" step="1">
+          </div>
+
+          <div class="field">
+            <label for="old-gbp-target-year">목표 연도</label>
+            <input id="old-gbp-target-year" name="targetYear" type="number" inputmode="numeric" step="1">
+          </div>
+
+          <fieldset class="field target-field">
+            <legend>목표 화폐</legend>
+            <div class="segmented-control">
+              <label>
+                <input type="radio" name="oldGbpTargetCurrency" value="KRW" checked>
+                <span>원화</span>
+              </label>
+              <label>
+                <input type="radio" name="oldGbpTargetCurrency" value="USD">
+                <span>달러</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <button id="old-gbp-submit-button" class="submit-button" type="submit">구화폐 변환</button>
+        </form>
+
+        <section id="old-gbp-result-panel" class="result-panel is-empty" aria-live="polite">
+          <p class="result-label">구화폐 계산 결과</p>
+          <p class="empty-message">파운드, 실링, 펜스를 입력하면 여기에 표시됩니다.</p>
+        </section>
+      </section>
     </main>
   </body>
 </html>

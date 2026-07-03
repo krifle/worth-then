@@ -65,6 +65,13 @@ h1 {
   letter-spacing: 0;
 }
 
+h2 {
+  margin: 0;
+  font-size: 1.35rem;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
 .calculator,
 .result-panel {
   border: 1px solid var(--border);
@@ -187,6 +194,44 @@ button:focus-visible,
   padding: 18px;
 }
 
+.old-money-section {
+  margin-top: 32px;
+}
+
+.section-heading {
+  margin-bottom: 14px;
+}
+
+.section-note {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.old-gbp-calculator {
+  margin-bottom: 12px;
+}
+
+.old-money-parts {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.group-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.old-money-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
+}
+
 .result-panel.is-empty,
 .result-panel.is-error {
   box-shadow: none;
@@ -290,8 +335,18 @@ button:focus-visible,
     grid-column: span 2;
   }
 
+  .old-gbp-calculator .old-money-parts {
+    grid-column: span 2;
+  }
+
   h1,
   .result-value {
     font-size: 2.35rem;
+  }
+}
+
+@media (max-width: 359px) {
+  .old-money-grid {
+    grid-template-columns: 1fr;
   }
 }
